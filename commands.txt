@@ -1,0 +1,7 @@
+1.mongo // to access to mongo shell
+2.show databases // for show all dbs except that doesn't have any collection and data
+3.use <db name> // for connect to existing or doesn't existing db . if that doesn't exist that will be create.(e.g:use shop)
+4.db.<collection name>.insertOne({<your key without or with quotation mark>:"<your value>"(,<<your key without or with quotation mark>:"<your value>">(,<<your key without or with quotation mark>:"<your value>">(,<<your key without or with quotation mark>:"<your value>">)))}) // this is for insert document to collection if your collection doesn't exist mongo will create it (e.g: db.products.insertOne({name:"shampoo"})  or  db.products.insertOne({"name":"shampoo",price:12.99})  )
+5.db.<collection name>.find()//if you don't insert any thing to find this will give you all document that would find (e.g:db.products.find() )
+6.<any thing>.pretty() // this will give you this feature that can you easily to read and pretty version
+7.cls // if you want to clear your mongo bash this command will help you to do that  
