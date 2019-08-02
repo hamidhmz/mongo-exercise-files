@@ -1,3 +1,4 @@
+mongo shell is based on javascript 
 1.mongo // to access to mongo shell
 2.show databases // for show all dbs except that doesn't have any collection and data
 3.use <db name> // for connect to existing or doesn't existing db . if that doesn't exist that will be create.(e.g:use shop)
@@ -53,3 +54,8 @@ deleteMany(filter,options)
 15.db.<collectionName>.update(filter,data,options) // e.g : db.<collectionName>.update({name:"shampoo"},{marker:"toDelete"}) // this command will work without $set but this command will replace all object with this new object
 16.db.<collectionName>.replaceOne(filter,data,options) // this command is as like as update command 
 
+17.in mongo we can have date and time stamps also we can have array and object// e.g:db.<collectionName>.insertOne({name:"apple",isStartup:true,funding:1234567890123456789(we cannot store this number if you wanna store number you must use strings or multiple field for that),details:{ceo:"mark super"},tags:[{title:"super"},{title:"perfect"},10,"all"],foundingDate:new Date(),insertedAt: new Timestamp()})
+
+18.db.stats() // this command will give you information about DB
+19.typeof db.<collectionName>.findOne({}).<fieldName> // this command will gave you type of the thing that return: e.g:typeof db.passengers.findOne({}).name
+20.
