@@ -19,6 +19,22 @@ if you wanna just see their  names you must type this command :db.<collectionNam
 create:
 insertOne(data,options)
 insertMany(data,options)
+insert() //this is for old approach and this is not a good approach this method work with either to previous method but with different result 
+
+Options:
+1.ordered:in insertMany for default ordered is true and it's means if some of the insert document got an error the rest of documents must be failed even if they are not have error with them just those are before document with error but when you changed to false all would be inserted except those have error // e.g: db.<collectionName>.insertMany([{_id:"yoga",name:"Yoga"},{_id:"gym",name:"Gym"},{_id:"cooking",name:"Cooking"}],{ordered:false})
+2.writeConcern:this option actually give a control on your response               
+db.<collectionName>.insertOne({name:"chrissy",age:41},{writeConcern:{w:0}}) : in this example this will return to you acknowledged:false even though it actually inserted this document but this would be not wait for response this is very fast but it might be some of data got lost 
+db.<collectionName>.insertOne({name:"chrissy",age:41},{writeConcern:{w:0}}) : this is default behavior 
+db.<collectionName>.insertOne({name:"chrissy",age:41},{writeConcern:{w:1,j:true}}) : this will be waiting for journal so it would be little bit slower than before 
+db.<collectionName>.insertOne({name:"chrissy",age:41},{writeConcern:{w:1,j:false}}) : this is default behavior  
+db.<collectionName>.insertOne({name:"chrissy",age:41},{writeConcern:{w:1,j:false,wtimeout:200}}) : this option can give the operation a timeOut that allow to wait for response
+![write concern option](./writeConcern.PNG "write concern option")
+
+3.Atomicity: when we insert a document or multiple docs mongo db will ensure that whole of one doc will be insert or none of element in doc will insert 
+this ensure is just for doc level
+![Atomicity](./Atomicity.PNG "Atomicity")
+
 
 read:
 find(filter,options)
@@ -37,9 +53,12 @@ deleteMany(filter,options)
 8.show collections // this command will give you list of all collections that db you have used
 9.db.<collectionName>.deleteOne(filter,options) // e.g : db.products.deleteOne({name:"shampoo"}) // this command will find all documents and delete them
 10.db.<collectionName>.deleteMany(filter,options) // e.g : db.products.deleteMany({marker:"toDelete"}) // this command will find all documents and delete them
+
 11.db.<collectionName>.updateOne(filter,data,options) // e.g : db.<collectionName>.updateOne({name:"shampoo"},{$set:{marker:"toDelete"}}) //this command will find first document and update that
 12.db.<collectionName>.updateMany(filter,data,options) // e.g : db.<collectionName>.updateMany({},{$set:{marker:"toDelete"}}) // this command will find all documents and set marker field to them or change marker fields
+
 13.db.<collectionName>.insertMany(<data as array>,options) // e.g : db.products.insertMany([{"name" : "shampoo3", "price" : 14.15},{"name" : "shampoo4", "price" : 16.15}]) this will enter whole array to this collection
+
 14.db.<collectionName>.find({distance: {$gt:10000}}) // all $ reserved by mongodb and do an action this case tell us find for me all documents that the distance is be grater than 10000 this characters called Comparison Query Operators
 
 * $eq	Matches values that are equal to a specified value.
@@ -186,3 +205,6 @@ db.runCommand({collMod:"posts",{
   }
 },validationAction:"warn"})
 
+24.db.dropDatabase()//  this is for when you wanna drop that database you already in use it  
+
+25.mongoimport --db <dbName> --collection <collectionName> --authenticationDatabase admin --username <user> --password <password> --file <fileName>.json --jsonArray(this means there are several docs to import not just one) --drop(this command is dangerous and will drop previous collection and will create new one)
