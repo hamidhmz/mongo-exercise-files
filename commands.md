@@ -36,7 +36,7 @@ this ensure is just for doc level
 ![Atomicity](./Atomicity.PNG "Atomicity")
 
 
-read:
+*********************************************** read ***************************************************:
 find(filter,options)
 findOne(filter,options)
 db.<collectionName>.<method(like find)>(<filter({field:value})>)
@@ -85,8 +85,9 @@ but this would not return array with opp order like this
 if we wanna return with don't care about order we have to use find like this 
 db.<collectionName>.find({"genre": {$all: ["Drama","Action"]} })
 
+$elemMatch
 if we wanna search in array that contain object or something els :
-db.<collectionName>.find({"genre": {$elemMatch: {title:"Sports",frequency:{$gte:3}}} })
+db.<collectionName>.find({"hobbies": {$elemMatch: {title:"Sports",frequency:{$gte:3}}} })
 this would return something like this 
 {
   "_id":ObjectId("484623135646844631554648"),
@@ -126,7 +127,7 @@ logical operators:
 
 * $and Matches all any of these condition inside array but with or law actually it should have several condition at same time.e.g: db.<collectionName>.find({$and:[{"runtime": {$nin: {[35,42]}}},{"runtime":35}]) --------- we have an alternative for this operator we can use this without and operator like this : db.<collectionName>.find({"runtime": {$nin: {[35,42]}},{"runtime":35}})
 * $not when we add not to any operators it would return opp of that result e.g: db.<collectionName>.find({"runtime": {"$not":{"$nin": {[35,42]}}}})
-* $nor (opp of $or )not Matches all any of these condition inside array but with or low.e.g: db.<collectionName>.find({$or:[{"runtime": {$nin: {[35,42]}}},{"runtime":37}])
+* $nor (opp of $or )not Matches all any of these condition inside array but with or low.e.g: db.<collectionName>.find({$nor:[{"runtime": {$nin: {[35,42]}}},{"runtime":37}])
 * $or Matches all any of these condition inside array but with or law.e.g: db.<collectionName>.find({$or:[{"runtime": {$nin: {[35,42]}}},{"runtime":37}])
 
 element operators:
@@ -202,9 +203,9 @@ evaluation operators:
 you must search for hobbies.title like this 
 db.users.find({"hobbies.title": "Sports" })
 
-2. if you wanna just filter size of array you can use $size e.g:db.users.find({hobbies: {$size:3} })
+1. if you wanna just filter size of array you can use $size e.g:db.users.find({hobbies: {$size:3} })
 
-3. if we wanna search in array that contain object or something els :
+2. if we wanna search in array that contain object or something els :
 db.<collectionName>.find({"genre": {$elemMatch: {title:"Sports",frequency:{$gte:3}}} })
 this would return something like this 
 {
@@ -232,11 +233,104 @@ db.movies.find({},{name:1,genres:1, runtime:1,rating:1})
 this will return all data we mention it and plus _id which is an exception if you wanna exclude the _id you must mention it e.g:
 db.movies.find({},{name:1,genres:1, runtime:1,rating:1,_id:0})
 
-update:
+$slice
+you want first 2 element of an array you must use slice for projection:
+db.<collectionName>.find({ },{genres:{$slice: 2 } , name:1 })
+you can skip it too
+db.<collectionName>.find({ },{genres:{$slice: [<number of you wanna skip >,<number of slice>] } , name:1 })
+
+
+
+
+
+
+
+
+
+
+
+
+
+*********************************************** update ***************************************************:
 update(filter,data,options)
 updateOne(filter,data,options)
 updateMany(filter,data,options)
 replaceOne(filter,data,options)
+
+db.<collectionName>.updateOne(filter,data,options) // e.g : db.<collectionName>.updateOne({name:"shampoo"},{$set:{marker:"toDelete"}}) //this command will find first document and update that
+db.<collectionName>.updateMany(filter,data,options) // e.g : db.<collectionName>.updateMany({},{$set:{marker:"toDelete"}}) // this command will find all documents and set marker field to them or change marker fields
+
+* $currentDate	Sets the value of a field to current date, either as a Date or a Timestamp.
+  
+* $inc	Increments the value of the field by the specified amount.
+db.<collectionName>.updateOne({name:"Manuel"},{$inc:{age:2}}) // this command find document and increase the field by 2
+db.<collectionName>.updateOne({name:"Manuel"},{$inc:{age:-2}}) // this command find document and increase the field by 2
+  
+* $min	Only updates the field if the specified value is less than the existing field value.
+db.<collectionName>.updateOne({name:"Manuel"},{$min:{age:35}}) // if age was grater than 35 then it would changed to 35 but if it was little than 35 it wont be changed
+
+* $max	Only updates the field if the specified value is greater than the existing field value.
+db.<collectionName>.updateOne({name:"Manuel"},{$max:{age:35}}) // if age was little than 35 then it would changed to 35 but if it was grater than 35 it wont be changed
+  
+* $mul	Multiplies the value of the field by the specified amount.
+db.<collectionName>.updateOne({name:"Manuel"},{$mul:{age:1.1}}) 
+
+* $rename	Renames a field.
+  
+* $set	Sets the value of a field in a document.and it does not override document
+e.g : db.<collectionName>.updateOne({name:"shampoo"},{$set:{marker:"toDelete"}}) //this command will find first document and update that
+
+* $setOnInsert	Sets the value of a field if an update results in an insert of a document. Has no effect on update operations that modify existing documents.it just means when upsert option would be true
+e.g : db.<collectionName>.updateOne({name:"shampoo"},{$setOnInsert:{marker:"toDelete"}},{upsert:true}) 
+
+* $unset	Removes the specified field from a document.
+e.g : db.<collectionName>.updateOne({name:"shampoo"},{$unset:{marker:""}}) 
+
+* $rename Rename the specified field from a document.
+e.g : db.<collectionName>.updateOne({},{$rename:{age:"totalAge"}}) 
+
+**** Update Array ****
+
+if we had document like this :
+{
+  "_id":ObjectId("2659846315484887"),
+  "name":"Chris",
+  "hobbies":[
+    {
+      "title":"Sports",
+      "frequency":3
+    },
+    {
+      "title":"Cooking",
+      "frequency":6
+    }
+  ],
+  "isSporty":true
+}
+db.<collectionName>.updateMany({hobbies:{ $elemMatch: {title:"Sports",frequency: {$gte: 3 } } } , {$set: {"hobbies.$"(this will give up that we already found):{title:"Sport",frequency:7}  } } }) this command will override document
+
+db.<collectionName>.updateMany({hobbies:{ $elemMatch: {title:"Sports",frequency: {$gte: 3 } } } , {$set: {"hobbies.$.highFrequency"(this will update that specified filed and if that field wasn't exist give you a new field):true  } } }) this command will override document
+
+db.<collectionName>.updateMany({hobbies:{ $elemMatch: {title:"Sports",frequency: {$gte: 3 } } } , {$set: {"hobbies.$[].highFrequency"(this will update that specified filed in foreach array element and if that field wasn't exist give you a new field):true  } } }) this command will override document
+
+db.<collectionName>.updateMany({"hobbies.frequency":{$gt: 2 }} ,{$set: {"hobbies.$[el].goodFrequency":true } }, {arrayFilters: [ {"el.frequency":{$gt:2}} ] }) // with this command you can specify the element you want to update
+
+* adding elements to Arrays
+db.<collectionName>.updateOne({name: "Maria}, {$push:{hobbies:{title:"Sports",frequency:2}}})
+db.<collectionName>.updateOne({name: "Maria}, {$addToSet:{hobbies:{title:"Sports",frequency:2}}}) // difference between addToSet and push is that push would add duplicate but we had that element addToSet wouldn't add duplicate 
+db.<collectionName>.updateOne({name: "Maria"},{$push: {hobbies:{$each:[{title:"Good Wine",frequency:1},{title:"Hiking",frequency:2}],$sort:{frequency:-1},$slice:1}}})
+
+* removing elements from Arrays
+db.<collectionName>.updateOne({name: "Maria}, {$pull:{hobbies:{title:"Sports",frequency:2}}})
+db.<collectionName>.updateOne({name: "Maria}, {$pop:{hobbies:1}}) when you wanna remove last element
+db.<collectionName>.updateOne({name: "Maria}, {$pop:{hobbies:-1}}) when you wanna remove first element
+
+
+
+
+
+
+
 
 delete:
 deleteOne(filter,options)
