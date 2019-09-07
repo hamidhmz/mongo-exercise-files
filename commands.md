@@ -330,11 +330,18 @@ db.<collectionName>.updateOne({name: "Maria}, {$pop:{hobbies:-1}}) when you wann
 
 
 
-
+*********************************************** delete ***************************************************:
 
 delete:
 deleteOne(filter,options)
 deleteMany(filter,options)
+
+db.<collectionName>.deleteOne({fileter},{option})
+db.<collectionName>.deleteMany({fileter},{option})
+db.<collectionName>.drop()
+db.dropDatabase()
+
+
 
 8.show collections // this command will give you list of all collections that db you have used
 9.db.<collectionName>.deleteOne(filter,options) // e.g : db.products.deleteOne({name:"shampoo"}) // this command will find all documents and delete them
