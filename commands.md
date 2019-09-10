@@ -239,15 +239,103 @@ db.<collectionName>.find({ },{genres:{$slice: 2 } , name:1 })
 you can skip it too
 db.<collectionName>.find({ },{genres:{$slice: [<number of you wanna skip >,<number of slice>] } , name:1 })
 
+* indexing text
+db.<collectionName>.createIndex({"<fieldName>":"text"(ascending and if you put -1 it became descending)})
 
+when you wanna search into indexes :
+db.<collectionName>.find({$text:{$search: "book"}}) this will search into all indexes
+{
+  "_id":ObjectId("55987552144887s855f47"),
+  "title":"A Book",
+  "description":"this is an awesome book about a young artist!"
+}
+db.<collectionName>.find({$text:{$search: "red book"}}) 
+{
+  "_id":ObjectId("55987552144887s855f47"),
+  "title":"A Book",
+  "description":"this is an awesome book about a young artist!"
+}
+{
+  "_id":ObjectId("848477846311578484489"),
+  "title":"Red T-Shirt",
+  "description":"this is T-Shirt is red and it's pretty awesome!"
+}
+db.<collectionName>.find({$text:{$search: "\"red book\""}})  when you are looking exact phrase 
 
+return nothing 
 
+db.<collectionName>.find({$text:{$search: "\"awesome book\""}})
+{
+  "_id":ObjectId("55987552144887s855f47"),
+  "title":"A Book",
+  "description":"this is an awesome book about a young artist!"
+}
 
+you can also sort that 
 
+db.<collectionName>.find({$text:{$search: "awesome t-shirt"},{score:{$meta:"textScore"}}}) 
+{
+  "_id":ObjectId("848477846311578484489"),
+  "title":"Red T-Shirt",
+  "description":"this is T-Shirt is red and it's pretty awesome!",
+  "score":1.7999999999999999999999998
+}
 
+{
+  "_id":ObjectId("55987552144887s855f47"),
+  "title":"A Book",
+  "description":"this is an awesome book about a young artist!",
+  "score":0.625
+}
 
+db.<collectionName>.find({$text:{$search: "awesome t-shirt"},{score:{$meta:"textScore"}}}).sort({score:{$meta:"textScore"}})
+{
+  "_id":ObjectId("848477846311578484489"),
+  "title":"Red T-Shirt",
+  "description":"this is T-Shirt is red and it's pretty awesome!",
+  "score":1.7999999999999999999999998
+}
+{
+  "_id":ObjectId("55987552144887s855f47"),
+  "title":"A Book",
+  "description":"this is an awesome book about a young artist!",
+  "score":0.625
+}
 
+** you can add combined text
+first you have to delete previous text indexes then :
+db.<collectionName>.createIndex({"<fieldName>":"text","<fieldName>":"text"})
 
+you can also exclude words from your search:
+without excluding
+db.<collectionName>.find({$text:{$search: "awesome "}})
+{
+  "_id":ObjectId("848477846311578484489"),
+  "title":"Red T-Shirt",
+  "description":"this is T-Shirt is red and it's pretty awesome!"
+}
+{
+  "_id":ObjectId("55987552144887s855f47"),
+  "title":"A Book",
+  "description":"this is an awesome book about a young artist!"
+}
+with excluding
+db.<collectionName>.find({$text:{$search: "awesome -t-shirt"}})
+{
+  "_id":ObjectId("848477846311578484489"),
+  "title":"Red T-Shirt",
+  "description":"this is T-Shirt is red and it's pretty awesome!"
+}
+{
+  "_id":ObjectId("55987552144887s855f47"),
+  "title":"A Book",
+  "description":"this is an awesome book about a young artist!"
+}
+
+** setting the default language and using weights
+db.<collectionName>.createIndex({"<fieldName>":"text","<fieldName>":"text"},{default_language:"english",weights:{title:1,description:"10"}})
+
+db.<collectionName>.find({$text:{$search: "",$language:"german",$caseSensitive:true}})
 
 
 
@@ -340,6 +428,84 @@ db.<collectionName>.deleteOne({fileter},{option})
 db.<collectionName>.deleteMany({fileter},{option})
 db.<collectionName>.drop()
 db.dropDatabase()
+
+
+
+*********************************************** index ***************************************************:
+db.<collectionName>.find().explain()
+db.<collectionName>.explain().find()
+db.<collectionName>.explain("queryPlanner").find()
+db.<collectionName>.explain("executionStats").find()
+db.<collectionName>.explain("serverInfo").find()
+queryPlanner, which details the plan selected by the query optimizer and lists the rejected plans;
+executionStats, which details the execution of the winning plan and the rejected plans; and
+serverInfo, which provides information on the MongoDB instance.
+
+
+db.<collectionName>.createIndex({"<fieldName>":1(ascending and if you put -1 it became descending)})
+db.<collectionName>.createIndex({"<fieldName>":"text"(ascending and if you put -1 it became descending)})
+db.<collectionName>.dropIndex({"<fieldName>":1(ascending and if you put -1 it became descending)})
+
+* indexes could be compound of multi fields 
+db.<collectionName>.createIndex({"<fieldName>":1,<fieldName>:1}) it would create one index but with 2 value
+
+* if you wanna see all indexes in a collection
+db.<collectionName>.getIndexes()
+
+* Configuring Indexes
+
+* unique
+db.<collectionName>.createIndex({email(this would be new index):1},{unique:true})
+
+* partial filter 
+db.<collectionName>.createIndex({"dob.age"(this would be new index):1},{partialFilterExpression:{gender:"male})
+e.g : db.<collectionName>.createIndex( 
+  { age: 1}, 
+  { partialFilterExpression: { age: { $gte: 18 }, lastname: { $exists: true }}
+);
+
+* TTL (Time-To-Live)
+db.<collectionName>.createIndex({createdAt:1},{expireAfterSeconds:10(time TO second)}) after this time mongo will delete document 
+point is this option is just work for single field app and just for date time 
+
+
+* text index
+  
+db.<collectionName>.createIndex({"<fieldName>":"text"(ascending and if you put -1 it became descending)})
+
+when you wanna search into indexes :
+db.<collectionName>.find({$text:{$search: "book"}}) this will search into all indexes
+{
+  "_id":ObjectId("55987552144887s855f47"),
+  "title":"A Book",
+  "description":"this is an awesome book about a young artist!"
+}
+db.<collectionName>.find({$text:{$search: "red book"}}) 
+{
+  "_id":ObjectId("55987552144887s855f47"),
+  "title":"A Book",
+  "description":"this is an awesome book about a young artist!"
+}
+{
+  "_id":ObjectId("848477846311578484489"),
+  "title":"Red T-Shirt",
+  "description":"this is T-Shirt is red and it's pretty awesome!"
+}
+db.<collectionName>.find({$text:{$search: "\"red book\""}})  when you are looking exact phrase 
+
+return nothing 
+
+db.<collectionName>.find({$text:{$search: "\"awesome book\""}})
+{
+  "_id":ObjectId("55987552144887s855f47"),
+  "title":"A Book",
+  "description":"this is an awesome book about a young artist!"
+}
+
+
+
+
+
 
 
 
