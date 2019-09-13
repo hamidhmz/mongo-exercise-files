@@ -442,7 +442,10 @@ executionStats, which details the execution of the winning plan and the rejected
 serverInfo, which provides information on the MongoDB instance.
 
 
-db.<collectionName>.createIndex({"<fieldName>":1(ascending and if you put -1 it became descending)})
+db.<collectionName>.createIndex({"<fieldName>":1(ascending and if you put -1 it became descending)}) ** this would create index in foreground  if you wanna create index in background use it like this:
+
+db.<collectionName>.createIndex({<fieldName>:1},{background:true})
+
 db.<collectionName>.createIndex({"<fieldName>":"text"(ascending and if you put -1 it became descending)})
 db.<collectionName>.dropIndex({"<fieldName>":1(ascending and if you put -1 it became descending)})
 
@@ -503,7 +506,108 @@ db.<collectionName>.find({$text:{$search: "\"awesome book\""}})
 }
 
 
+you can also sort that 
 
+db.<collectionName>.find({$text:{$search: "awesome t-shirt"},{score:{$meta:"textScore"}}}) 
+{
+  "_id":ObjectId("848477846311578484489"),
+  "title":"Red T-Shirt",
+  "description":"this is T-Shirt is red and it's pretty awesome!",
+  "score":1.7999999999999999999999998
+}
+
+{
+  "_id":ObjectId("55987552144887s855f47"),
+  "title":"A Book",
+  "description":"this is an awesome book about a young artist!",
+  "score":0.625
+}
+
+db.<collectionName>.find({$text:{$search: "awesome t-shirt"},{score:{$meta:"textScore"}}}).sort({score:{$meta:"textScore"}})
+{
+  "_id":ObjectId("848477846311578484489"),
+  "title":"Red T-Shirt",
+  "description":"this is T-Shirt is red and it's pretty awesome!",
+  "score":1.7999999999999999999999998
+}
+{
+  "_id":ObjectId("55987552144887s855f47"),
+  "title":"A Book",
+  "description":"this is an awesome book about a young artist!",
+  "score":0.625
+}
+
+** you can add combined text
+first you have to delete previous text indexes then :
+db.<collectionName>.createIndex({"<fieldName>":"text","<fieldName>":"text"})
+
+you can also exclude words from your search:
+without excluding
+db.<collectionName>.find({$text:{$search: "awesome "}})
+{
+  "_id":ObjectId("848477846311578484489"),
+  "title":"Red T-Shirt",
+  "description":"this is T-Shirt is red and it's pretty awesome!"
+}
+{
+  "_id":ObjectId("55987552144887s855f47"),
+  "title":"A Book",
+  "description":"this is an awesome book about a young artist!"
+}
+with excluding
+db.<collectionName>.find({$text:{$search: "awesome -t-shirt"}})
+{
+  "_id":ObjectId("848477846311578484489"),
+  "title":"Red T-Shirt",
+  "description":"this is T-Shirt is red and it's pretty awesome!"
+}
+{
+  "_id":ObjectId("55987552144887s855f47"),
+  "title":"A Book",
+  "description":"this is an awesome book about a young artist!"
+}
+
+** setting the default language and using weights
+db.<collectionName>.createIndex({"<fieldName>":"text","<fieldName>":"text"},{default_language:"english",weights:{title:1,description:"10"}})
+
+db.<collectionName>.find({$text:{$search: "",$language:"german",$caseSensitive:true}})
+
+* adding a Geospatial index
+db.<collectionName>.createIndex({<yourFieldName>:"2dsphere})
+
+
+
+
+*********************************************** Geospatial ***************************************************:
+
+first you have to add special index to it
+* adding a Geospatial index
+db.<collectionName>.createIndex({<yourFieldName>:"2dsphere})
+
+
+
+db.<collectionName(anything you want)>.insertOne({<fieldName(anything you want)>:"<anyNameYouWant>",<fieldName(anything you want)>:{ type<it has to be type>:"Point<it has to be valid type of geo data support by mongodb>",coordinates<it has to be coordinates>:[<longitude> , <Latitude>] }})
+
+* list of valid type of geo data in mongo
+Point
+LineString
+Polygon
+MultiPoint
+MultiLineString
+MultiPolygon
+GeometryCollection
+
+db.<collectionName>.find({<fieldName>: {$near: {$geometry: {type: "Point", coordinates: [<longitude> , <Latitude>] },$maxDistance: <distance to meter>,$minDistance:<distance to meter> } } })
+
+* finding places inside a certain area
+db.<collectionName>.find({location:{$geoWithin: {$geometry : { type: "Polygon" }, coordinates: [[ <corrdinate1(mean array of longitude and Latitude)>,<corrdinate2>,<corrdinate3>,<corrdinate4>,<corrdinate1> ]] } }}) // polygon need to be end with start point
+
+
+* if you have polygon inside DB this method help you find user is inside a specific area
+db.<collectionName>.find({ area: {$geoIntersects:{ $geometry:{ type:"Point",coordinates: [ longitude , Latitude ] } }} })
+
+* finding places within a certain Radius
+db.<collectionName>.find({ location: {$geoWithin: {$centerSphere: [ [<longitude> , <Latitude>], <Radius to radians> ]  } } })
 
 
 
@@ -667,3 +771,341 @@ db.runCommand({collMod:"posts",{
 24.db.dropDatabase()//  this is for when you wanna drop that database you already in use it  
 
 25.mongoimport --db <dbName> --collection <collectionName> --authenticationDatabase admin --username <user> --password <password> --file <fileName>.json --jsonArray(this means there are several docs to import not just one) --drop(this command is dangerous and will drop previous collection and will create new one)
+
+
+
+*********************************************** aggregate ***************************************************:
+db.<collectionName>.aggregate(<pipeline>, <options>)
+db.<collectionName>.aggregate([
+  {$match:{gender:"female"}}
+  ],
+  {allowDiskUse: true}
+)
+
+
+
+
+$addFields	
+Adds new fields to documents. Similar to $project, $addFields reshapes each document in the stream; specifically, by adding new fields to output documents that contain both the existing fields from the input documents and the newly added fields.
+
+$set is an alias for $addFields.
+
+$bucket	Categorizes incoming documents into groups, called buckets, based on a specified expression and bucket boundaries.
+$bucketAuto	Categorizes incoming documents into a specific number of groups, called buckets, based on a specified expression. Bucket boundaries are automatically determined in an attempt to evenly distribute the documents into the specified number of buckets.
+$collStats	Returns statistics regarding a collection or view.
+$count	Returns a count of the number of documents at this stage of the aggregation pipeline.
+$facet	Processes multiple aggregation pipelines within a single stage on the same set of input documents. Enables the creation of multi-faceted aggregations capable of characterizing data across multiple dimensions, or facets, in a single stage.
+$geoNear	Returns an ordered stream of documents based on the proximity to a geospatial point. Incorporates the functionality of $match, $sort, and $limit for geospatial data. The output documents include an additional distance field and can include a location identifier field.
+$graphLookup	Performs a recursive search on a collection. To each output document, adds a new array field that contains the traversal results of the recursive search for that document.
+$group	Groups input documents by a specified identifier expression and applies the accumulator expression(s), if specified, to each group. Consumes all input documents and outputs one document per each distinct group. The output documents only contain the identifier field and, if specified, accumulated fields.
+$indexStats	Returns statistics regarding the use of each index for the collection.
+$limit	Passes the first n documents unmodified to the pipeline where n is the specified limit. For each input document, outputs either one document (for the first n documents) or zero documents (after the first n documents).
+$listSessions	Lists all sessions that have been active long enough to propagate to the system.sessions collection.
+$lookup	Performs a left outer join to another collection in the same database to filter in documents from the “joined” collection for processing.
+$match	Filters the document stream to allow only matching documents to pass unmodified into the next pipeline stage. $match uses standard MongoDB queries. For each input document, outputs either one document (a match) or zero documents (no match).
+$merge	
+Writes the resulting documents of the aggregation pipeline to a collection. The stage can incorporate (insert new documents, merge documents, replace documents, keep existing documents, fail the operation, process documents with a custom update pipeline) the results into an output collection. To use the $merge stage, it must be the last stage in the pipeline.
+
+New in version 4.2.
+
+$out	Writes the resulting documents of the aggregation pipeline to a collection. To use the $out stage, it must be the last stage in the pipeline.
+$planCacheStats	Returns plan cache information for a collection.
+$project	
+Reshapes each document in the stream, such as by adding new fields or removing existing fields. For each input document, outputs one document.
+
+See also $unset for removing existing fields.
+
+$redact	Reshapes each document in the stream by restricting the content for each document based on information stored in the documents themselves. Incorporates the functionality of $project and $match. Can be used to implement field level redaction. For each input document, outputs either one or zero documents.
+$replaceRoot	
+Replaces a document with the specified embedded document. The operation replaces all existing fields in the input document, including the _id field. Specify a document embedded in the input document to promote the embedded document to the top level.
+
+$replaceWith is an alias for $replaceRoot stage.
+
+$replaceWith	
+Replaces a document with the specified embedded document. The operation replaces all existing fields in the input document, including the _id field. Specify a document embedded in the input document to promote the embedded document to the top level.
+
+$replaceWith is an alias for $replaceRoot stage.
+
+$sample	Randomly selects the specified number of documents from its input.
+$set	
+Adds new fields to documents. Similar to $project, $set reshapes each document in the stream; specifically, by adding new fields to output documents that contain both the existing fields from the input documents and the newly added fields.
+
+$set is an alias for $addFields stage.
+
+$skip	Skips the first n documents where n is the specified skip number and passes the remaining documents unmodified to the pipeline. For each input document, outputs either zero documents (for the first n documents) or one document (if after the first n documents).
+$sort	Reorders the document stream by a specified sort key. Only the order changes; the documents remain unmodified. For each input document, outputs one document.
+$sortByCount	Groups incoming documents based on the value of a specified expression, then computes the count of documents in each distinct group.
+$unset	
+Removes/excludes fields from documents.
+
+$unset is an alias for $project stage that removes fields.
+
+$unwind	Deconstructs an array field from the input documents to output a document for each element. Each output document replaces the array with an element value. For each input document, outputs n documents where n is the number of array elements and can be zero for an empty array.
+
+* $match: this is like find in regular commands
+db.<collectionName>.aggregate([
+  {$match:{gender:"female"}}
+])
+
+**** $group ****
+
+* $group: this is like distinct
+db.<collectionName>.aggregate([
+  {$group:{_id:{<any name you want>:"$test<this is that field you wanna group by>"}}}
+])
+
+
+Accumulator Operator
+The <accumulator> operator must be one of the following accumulator operators:
+$addToSet	Returns an array of unique expression values for each group. Order of the array elements is undefined.
+$avg	Returns an average of numerical values. Ignores non-numeric values.
+$first	Returns a value from the first document for each group. Order is only defined if the documents are in a defined order.
+$last	Returns a value from the last document for each group. Order is only defined if the documents are in a defined order.
+$max	Returns the highest expression value for each group.
+$mergeObjects	Returns a document created by combining the input documents for each group.
+$min	Returns the lowest expression value for each group.
+$push	Returns an array of expression values for each group.
+$stdDevPop	Returns the population standard deviation of the input values.
+$stdDevSamp	Returns the sample standard deviation of the input values.
+$sum	Returns a sum of numerical values. Ignores non-numeric values.
+db.<collectionName>.aggregate([
+  {$group:{_id:{<any name you want>:"$test<this is that field you wanna group by>"},total:{$sum:1}}}
+])
+
+
+
+**** $project ****
+
+db.persons.aggregate([
+    {
+      $project: {
+        _id: 0,
+        name: 1,
+        email: 1,
+        birthdate: { $convert: { input: '$dob.date', to: 'date' } },
+        age: "$dob.age",
+        location: {
+          type: 'Point',
+          coordinates: [
+            {
+              $convert: {
+                input: '$location.coordinates.longitude',
+                to: 'double',
+                onError: 0.0,
+                onNull: 0.0
+              }
+            },
+            {
+              $convert: {
+                input: '$location.coordinates.latitude',
+                to: 'double',
+                onError: 0.0,
+                onNull: 0.0
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      $project: {
+        gender: 1,
+        email: 1,
+        location: 1,
+        birthdate: 1,
+        age: 1,
+        fullName: {
+          $concat: [
+            { $toUpper: { $substrCP: ['$name.first', 0, 1] } },
+            {
+              $substrCP: [
+                '$name.first',
+                1,
+                { $subtract: [{ $strLenCP: '$name.first' }, 1] }
+              ]
+            },
+            ' ',
+            { $toUpper: { $substrCP: ['$name.last', 0, 1] } },
+            {
+              $substrCP: [
+                '$name.last',
+                1,
+                { $subtract: [{ $strLenCP: '$name.last' }, 1] }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]).pretty();
+
+
+* projection for array :
+db.friends.aggregate([
+    { $project: { _id: 0, examScore: { $slice: ["$examScores<this is field name>", 2<start at>, 1<how much>] } } }
+  ]).pretty();
+
+db.friends.aggregate([
+    { $project: { _id: 0, numScores: { $size: "$examScores<this is field name>" } } }
+  ]).pretty();
+
+
+
+
+
+**** $unwind ****
+
+pull out every element of array 
+db.friends.aggregate([
+    { $unwind: "$hobbies<that element whom hold the array>" }
+  ]).pretty();
+
+**** $filter ****
+this is specially for array 
+
+db.friends.aggregate([
+    {
+      $project: {
+        _id: 0,
+        scores: { $filter: { input: '$examScores', as: 'sc', cond: { $gt: ["$$sc.score", 60] } } }
+      }
+    }
+  ]).pretty();
+
+
+**** $bucket ****
+
+db.persons
+  .aggregate([
+    {
+      $bucket: {
+        groupBy: '$dob.age<which field>',
+        boundaries: [18, 30, 40, 50, 60, 120]<choose boundaries>,
+        output: {
+          numPersons: { $sum: 1 },
+          averageAge: { $avg: '$dob.age' }
+        }
+      }
+    }
+  ])
+  .pretty();
+
+db.persons.aggregate([
+    {
+      $bucketAuto: {
+        groupBy: '$dob.age<which field>',
+        buckets: 5<number of division you want >,
+        output: {
+          numPersons: { $sum: 1 },
+          averageAge: { $avg: '$dob.age' }
+        }
+      }
+    }
+  ]).pretty();
+
+  **** sort,limit,skip ****
+
+  db.persons.aggregate([
+    { $match: { gender: "male" } },
+    { $project: { _id: 0, gender: 1, name: { $concat: ["$name.first", " ", "$name.last"] }, birthdate: { $toDate: "$dob.date" } } },
+    { $sort: { birthdate: 1 } },
+    { $skip: 10 },
+    { $limit: 10 }
+  ]).pretty();
+
+
+
+
+**** writing pipeline results into a new collection ****
+
+you should add end of the aggregate this object:
+{$out : "transformedPersons"}
+
+like this:
+
+db.persons.aggregate([
+    {
+      $project: {
+        _id: 0,
+        name: 1,
+        email: 1,
+        birthdate: { $toDate: '$dob.date' },
+        age: "$dob.age",
+        location: {
+          type: 'Point',
+          coordinates: [
+            {
+              $convert: {
+                input: '$location.coordinates.longitude',
+                to: 'double',
+                onError: 0.0,
+                onNull: 0.0
+              }
+            },
+            {
+              $convert: {
+                input: '$location.coordinates.latitude',
+                to: 'double',
+                onError: 0.0,
+                onNull: 0.0
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      $project: {
+        gender: 1,
+        email: 1,
+        location: 1,
+        birthdate: 1,
+        age: 1,
+        fullName: {
+          $concat: [
+            { $toUpper: { $substrCP: ['$name.first', 0, 1] } },
+            {
+              $substrCP: [
+                '$name.first',
+                1,
+                { $subtract: [{ $strLenCP: '$name.first' }, 1] }
+              ]
+            },
+            ' ',
+            { $toUpper: { $substrCP: ['$name.last', 0, 1] } },
+            {
+              $substrCP: [
+                '$name.last',
+                1,
+                { $subtract: [{ $strLenCP: '$name.last' }, 1] }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    { $out: "transformedPersons" }
+  ]).pretty();
+
+
+
+
+**** $geoNear ****
+
+db.transformedPersons.aggregate([
+    {
+      $geoNear: {
+        near: {
+          type: 'Point',
+          coordinates: [-18.4, -42.8]
+        },
+        maxDistance: 1000000,
+        num: 10,
+        query: { age: { $gt: 30 } },
+        distanceField: "distance"
+      }
+    }
+  ]).pretty();
+
+
+
