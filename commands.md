@@ -1109,3 +1109,32 @@ db.transformedPersons.aggregate([
 
 
 
+*********************************************** number types ***************************************************:
+
+* integer(int32)  
+2,147,483,648
+-2,147,483,648
+
+* Longs(int64)
+9,223,372,036,854,775,808
+-9,223,372,036,854,775,808
+
+* doubles(64bit) (default format of mongo for number)
+
+* High precision doubles(128bit)
+
+if you wanna insert as number Int32 you must do this 
+db.<collectionName>.insertOne({<fieldName>:NumberInt(<yourNumber with "" or without quotation >)}) //32int
+
+
+if you wanna insert as number Int64 you must do this 
+db.<collectionName>.insertOne({<fieldName>:NumberLong(<yourNumber with ""  >)}) //64int
+
+
+if you wanna insert as number 128decimal you must do this 
+db.<collectionName>.insertOne({<fieldName>:NumberDecimal(<yourNumber with ""  >)}) //128decimal
+
+
+
+
+
