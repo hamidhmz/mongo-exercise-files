@@ -1138,3 +1138,72 @@ db.<collectionName>.insertOne({<fieldName>:NumberDecimal(<yourNumber with ""  >)
 
 
 
+*********************************************** authentication ***************************************************:
+
+mongod --auth //this is for starting mongodb server
+
+sign in :
+first after went to the shell 
+db.auth('<userName>','<password>')
+ 
+ or
+
+when you wanna connect to shell
+mongo -u <userName> -p <password> --authenticationDatabase admin
+
+
+
+* important: when we connection to DB and it need authentication and we don't have any users for fist time mongodb have solution for this that would called mongoDB localhost exception when you connect for first time with authentication we don't have any users but you can connect from your localhost server and create 1 users so that should be have full permission 
+
+
+* create user
+
+use admin 
+db.createUser({user:<userName>,pwd:<password>,roles["userAminAnyDatabase"]})
+
+
+you can create user for access to other databases
+db.createUser({user:<userName>,pwd:<password>,{roles:["readWrite<role for this current db>",{role:"userAminAnyDatabase<role for another dbs>",db:"blog<any DB name>"}]}})
+
+![builtInRoles](./builtInRoles.PNG "builtInRoles")
+
+
+* update user
+
+db.updateUser(<userName>,{roles:["readWrite<role for this current db>",{role:"userAminAnyDatabase<role for another dbs>",db:"blog<any DB name>"}]})
+
+
+
+* logout 
+db.logout()
+
+
+*********************************************** capped collection ***************************************************:
+
+db.createCollection("<collectionName>",{capped:true,size:<size of whole collection to bytes>,max:<documents amount>})
+
+
+
+
+
+
+
+*********************************************** Transactions ***************************************************:
+
+![Transactions](./Transactions.PNG "Transactions")
+
+const session = db.getMongo().startSession()
+const usersCol = session.getDatabase("<DBName>").<collectionName>
+const postsCol = session.getDatabase("<DBName>").<collectionName>
+
+session.startTransaction()
+usersCol.deleteOne({_id:<id>})
+postsCol.deleteMany({userId:<id>})
+
+if you wanna close it 
+session.abortTransaction()
+
+if you wanna commit it 
+session.commitTransaction()
+
+
