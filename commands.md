@@ -1,8 +1,14 @@
 mongo shell is based on javascript 
+
 1.mongo // to access to mongo shell
+
 2.show databases // for show all dbs except that doesn't have any collection and data
+
 3.use <db name> // for connect to existing or doesn't existing db . if that doesn't exist that will be create.(e.g:use shop)
+  
 4.db.<collection name>.insertOne({<your key without or with quotation mark>:"<your value>"(,<<your key without or with quotation mark>:"<your value>">(,<<your key without or with quotation mark>:"<your value>">(,<<your key without or with quotation mark>:"<your value>">)))}) // this is for insert document to collection if your collection doesn't exist mongo will create it (e.g: db.products.insertOne({name:"shampoo"})  or  db.products.insertOne({"name":"shampoo",price:12.99})  )//mongodb always generate for you an id as _id this is a uniq id but if you want to you can change that field and write your id but be careful if you write a duplicate id mongodb would return to you an error 
+  
+  
 5.db.<collection name>.find()//if you don't insert any thing to find this will give you all document that would find (e.g:db.products.find() ) // this command would not gave you all document it just gave you a cursor but you can add .toArray to it till that would gave you all documents in an array // 
 db.<collection name>.find().toArray() // db.<collectionName>.find().forEach() this command allow you do query like code //e.g : db.passengers.find().forEach((a)=>{printjson(a)}) //printjson is a function in mongodb // db.passengers.find().forEach((a)=>{printjson(a.age)})  
 
@@ -14,6 +20,7 @@ if you wanna just see their  names you must type this command :db.<collectionNam
 #important : if you wanna access to nested documents you show that with . to access child but you must put all field into quotation marks e.g: db.<collection name>.find({"status.description":"10 miles away"})
 
 6.<any thing>.pretty() // this will give you this feature that can you easily to read and pretty version
+  
 7.cls // if you want to clear your mongo bash this command will help you to do that  
 
 create:
@@ -23,6 +30,7 @@ insert() //this is for old approach and this is not a good approach this method 
 
 Options:
 1.ordered:in insertMany for default ordered is true and it's means if some of the insert document got an error the rest of documents must be failed even if they are not have error with them just those are before document with error but when you changed to false all would be inserted except those have error // e.g: db.<collectionName>.insertMany([{_id:"yoga",name:"Yoga"},{_id:"gym",name:"Gym"},{_id:"cooking",name:"Cooking"}],{ordered:false})
+  
 2.writeConcern:this option actually give a control on your response               
 db.<collectionName>.insertOne({name:"chrissy",age:41},{writeConcern:{w:0}}) : in this example this will return to you acknowledged:false even though it actually inserted this document but this would be not wait for response this is very fast but it might be some of data got lost 
 db.<collectionName>.insertOne({name:"chrissy",age:41},{writeConcern:{w:1}}) : this is default behavior 
@@ -38,8 +46,11 @@ this ensure is just for doc level
 
 *********************************************** read ***************************************************:
 find(filter,options)
+
 findOne(filter,options)
+
 db.<collectionName>.<method(like find)>(<filter({field:value})>)
+  
 db.<collectionName>.<method(like find)>(<filter({field:{operator:value}})>)
 
 search in embedded documents inside an object field would be like this : "rating.total.average" e.g: 
@@ -117,8 +128,8 @@ comparison Operators:
 * $eq	Matches values that are equal to a specified value.
 * $gt	Matches values that are greater than a specified value.
 * $gte	Matches values that are greater than or equal to a specified value.
-* $in	Matches any of the values specified in an array.e.g: db.<collectionName>.find({"runtime": {$in: {[35,42]}}})
-* $nin	Matches none of the values specified in an array.e.g: db.<collectionName>.find({"runtime": {$nin: {[35,42]}}})
+* $in	Matches any of the values specified in an array.e.g: db.<collectionName>.find({"runtime": {$in: [35,42]}})
+* $nin	Matches none of the values specified in an array.e.g: db.<collectionName>.find({"runtime": {$nin: [35,42]}})
 * $lt	Matches values that are less than a specified value.
 * $lte	Matches values that are less than or equal to a specified value.
 * $ne	Matches all values that are not equal to a specified value. 
