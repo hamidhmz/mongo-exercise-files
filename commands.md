@@ -348,7 +348,11 @@ db.<collectionName>.createIndex({"<fieldName>":"text","<fieldName>":"text"},{def
 
 db.<collectionName>.find({$text:{$search: "",$language:"german",$caseSensitive:true}})
 
+** distinct:
 
+Finds the distinct values for a specified field across a single collection or view and returns the results in an array.
+
+db.<collectionName>.distinct("<document field>")
 
 *********************************************** update ***************************************************:
 update(filter,data,options)
